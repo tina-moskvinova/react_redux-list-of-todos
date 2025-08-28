@@ -1,24 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from './app/hooks';
-import { loadTodosAndUsers } from './features/thunks';
 import 'bulma/css/bulma.css';
-import { RootState } from './app/store';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { Loader, TodoFilter, TodoList, TodoModal } from './components';
+import { getTodos } from './api';
+import { setTodos, setIsLoading } from './features/todosSlice';
+import { RootState } from './app/store';
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const todos = useAppSelector((state: RootState) => state.todos.todos);
   const isLoading = useAppSelector((state: RootState) => state.todos.isLoading);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedTodoId, setSelectedTodoId] = useState<number | null>(null);
 
   useEffect(() => {
-    dispatch(loadTodosAndUsers()).catch(() => {
-      setError('Failed to load data. Please try again.');
-    });
+    const fetchData = async () => {
+      try {
+        dispatch(setIsLoading(true));
+        const todosData = await getTodos();
+
+        dispatch(setTodos(todosData));
+      } catch {
+        setError('Failed to load data. Please try again.');
+      } finally {
+        dispatch(setIsLoading(false));
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
 
   const selectedTodo = todos.find(todo => todo.id === selectedTodoId) || null;
@@ -30,10 +40,7 @@ export const App: React.FC = () => {
           <div className="box">
             <h1 className="title">Todos:</h1>
             <div className="block">
-              <TodoFilter
-                setStatus={setStatus}
-                setSearchQuery={setSearchQuery}
-              />
+              <TodoFilter />
             </div>
             <div className="block">
               {error && (
@@ -49,9 +56,6 @@ export const App: React.FC = () => {
               )}
               {!isLoading && todos.length > 0 && (
                 <TodoList
-                  todos={todos}
-                  searchQuery={searchQuery}
-                  status={status}
                   selectedTodoId={selectedTodoId}
                   setSelectedTodoId={setSelectedTodoId}
                 />

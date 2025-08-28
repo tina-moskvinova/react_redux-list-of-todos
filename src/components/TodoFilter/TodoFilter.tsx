@@ -1,30 +1,21 @@
 import React from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { setQuery, setStatus } from '../../features/filter';
 
-interface TodoFilterProps {
-  setStatus: (status: string) => void;
-  setSearchQuery: (query: string) => void;
-}
-
-export const TodoFilter: React.FC<TodoFilterProps> = ({
-  setStatus,
-  setSearchQuery,
-}) => {
-  const [query, setQuery] = React.useState('');
+export const TodoFilter: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { query, status } = useAppSelector(state => state.filter);
 
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = event.target.value;
-
-    setQuery(newQuery);
-    setSearchQuery(newQuery);
+    dispatch(setQuery(event.target.value));
   };
 
   const handleClearQuery = () => {
-    setQuery('');
-    setSearchQuery('');
+    dispatch(setQuery(''));
   };
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatus(event.target.value);
+    dispatch(setStatus(event.target.value as 'all' | 'active' | 'completed'));
   };
 
   return (
@@ -52,7 +43,11 @@ export const TodoFilter: React.FC<TodoFilterProps> = ({
       )}
       <div className="control">
         <div className="select">
-          <select onChange={handleStatusChange} data-cy="statusSelect">
+          <select
+            value={status}
+            onChange={handleStatusChange}
+            data-cy="statusSelect"
+          >
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="completed">Completed</option>

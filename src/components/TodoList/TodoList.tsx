@@ -1,32 +1,21 @@
 import React from 'react';
-
-interface Todo {
-  id: number;
-  title: string;
-  completed: boolean;
-}
+import { useAppSelector } from '../../app/hooks';
+import { Todo } from '../../types/Todo';
 
 interface TodoListProps {
-  todos: Todo[];
-  searchQuery: string;
-  status: string;
-  setSelectedTodoId: React.Dispatch<React.SetStateAction<number | null>>;
   selectedTodoId: number | null;
+  setSelectedTodoId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
-  todos,
-  searchQuery,
-  status,
-  setSelectedTodoId,
   selectedTodoId,
+  setSelectedTodoId,
 }) => {
-  const filteredTodos = todos
-    .filter(todo => {
-      if (status === 'all') {
-        return true;
-      }
+  const todos = useAppSelector(state => state.todos.todos);
+  const { query, status } = useAppSelector(state => state.filter);
 
+  const filteredTodos: Todo[] = todos
+    .filter(todo => {
       if (status === 'active') {
         return !todo.completed;
       }
@@ -37,9 +26,7 @@ export const TodoList: React.FC<TodoListProps> = ({
 
       return true;
     })
-    .filter(todo =>
-      todo.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    .filter(todo => todo.title.toLowerCase().includes(query.toLowerCase()));
 
   return (
     <>
